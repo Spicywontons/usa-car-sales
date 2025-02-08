@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime, timedelta
+
+# Generate sample sales data
+def generate_sales_data(n=1000):
+    np.random.seed(42)
+    brands = ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Mercedes']
+    states = ['California', 'Texas', 'Florida', 'New York', 'Illinois', 'Ohio', 'Georgia']
+    start_date = datetime(2023, 1, 1)
+    dates = [start_date + timedelta(days=np.random.randint(0, 365)) for _ in range(n)]
+    sales_data = {
+        'Date': dates,
+        'Brand': np.random.choice(brands, n),
+        'State': np.random.choice(states, n),
+        'Units Sold': np.random.randint(1, 10, n),
+        'Price per Unit': np.random.randint(20000, 50000, n)
+    }
+    sales_data['Total Sales'] = np.array(sales_data['Units Sold']) * np.array(sales_data['Price per Unit'])
+    return pd.DataFrame(sales_data)
+
+# Load the data
+df = generate_sales_data()
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Analysis
+print("Total Sales Revenue: $", df['Total Sales'].sum())
+print("Sales by Brand:")
+print(df.groupby('Brand')['Total Sales'].sum().sort_values(ascending=False))
+
+# Monthly Sales Trend
+df['Month'] = df['Date'].dt.to_period('M')
+monthly_sales = df.groupby('Month')['Total Sales'].sum()
+
+# Visualization
+plt.figure(figsize=(12, 6))
+sns.barplot(x=monthly_sales.index.astype(str), y=monthly_sales.values, color='blue')
+plt.xticks(rotation=45)
+plt.xlabel("Month")
+plt.ylabel("Total Sales ($)")
+plt.title("Monthly Car Sales Trend in the USA")
+plt.show()
+
+# Sales by Brand Pie Chart
+brand_sales = df.groupby('Brand')['Total Sales'].sum()
+plt.figure(figsize=(8, 8))
+plt.pie(brand_sales, labels=brand_sales.index, autopct='%1.1f%%', startangle=140)
+plt.title("Car Sales Distribution by Brand")
+plt.show()
